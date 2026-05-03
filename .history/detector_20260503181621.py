@@ -4,7 +4,6 @@ import random
 from ultralytics import YOLO
 from tracker import LineCounter
 from speed_estimator import SpeedEstimator
-from heatmap import Heatmap
 
 
 class Detector:
@@ -14,8 +13,7 @@ class Detector:
         conf=0.5,
         iou=0.45,
         classes=None,
-        pixel_per_meter=8.0,
-        enable_heatmap=True
+        pixel_per_meter=8.0
     ):
         self.model           = YOLO(model_path)
         self.conf            = conf
@@ -26,7 +24,6 @@ class Detector:
             pixel_per_meter=pixel_per_meter,
             fps=30
         )
-        self.heatmap = Heatmap() if enable_heatmap else None
 
     # ── helpers ───────────────────────────────────────────────────
     def _get_color(self, track_id):
@@ -54,7 +51,7 @@ class Detector:
             class_name      = self.model.names[class_id]
             color           = self._get_color(track_id)
 
-            # Speed estimation
+            # ── Speed estimation ──────────────────────────────────
             speed     = self.speed_estimator.update(track_id, box)
             spd_color = self.speed_estimator.get_color(speed)
 
@@ -81,6 +78,7 @@ class Detector:
             fs, th = 0.55, 1
             (lw, lh), _ = cv2.getTextSize(
                 label, cv2.FONT_HERSHEY_SIMPLEX, fs, th)
+
             cv2.rectangle(frame,
                 (x1, y1 - lh - 10),
                 (x1 + lw + 8, y1),
@@ -146,6 +144,7 @@ class Detector:
         return frame
 
     def _draw_speed_legend(self, frame):
+        """Draw speed color legend in bottom-left corner."""
         h = frame.shape[0]
         items = [
             ((50, 200, 50),  "< 20 km/h  slow"),
@@ -197,9 +196,7 @@ class Detector:
         else:
             print("Tracking all classes")
 
-        heatmap_on = self.heatmap is not None
-        print(f"Heatmap: {'ON' if heatmap_on else 'OFF'}")
-        print("Press Q to quit | R to reset heatmap\n")
+        print("Press Q to quit\n")
 
         prev_time = time.time()
 
@@ -220,22 +217,15 @@ class Detector:
                 verbose=False
             )
 
-            # ── Heatmap (draw FIRST so boxes appear on top) ───────
-            if self.heatmap:
-                boxes_list = []
-                if results[0].boxes is not None:
-                    boxes_list = results[0].boxes.xyxy.cpu().numpy()
-                self.heatmap.update(boxes_list)
-                frame = self.heatmap.draw(frame, alpha=0.45)
-                frame = self.heatmap.draw_legend(frame)
-
-            # ── FPS ───────────────────────────────────────────────
+            # FPS
             curr_time = time.time()
             fps       = 1 / max(curr_time - prev_time, 0.001)
             prev_time = curr_time
+
+            # Update speed estimator FPS dynamically
             self.speed_estimator.fps = fps
 
-            # ── Draw tracked boxes + HUD ──────────────────────────
+            # Draw everything
             count = len(results[0].boxes) if results[0].boxes else 0
             frame = self._draw_tracked_boxes(frame, results, counter)
             frame = self._draw_fps(frame, fps)
@@ -245,21 +235,16 @@ class Detector:
             if counter:
                 frame = counter.draw(frame)
 
-            cv2.imshow("SENTINEL  |  Q quit  R reset heatmap", frame)
+            cv2.imshow("SENTINEL — Speed Estimation  |  Q to quit", frame)
 
             if writer:
                 writer.write(frame)
 
-            # Key controls
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord("q"):
+            if cv2.waitKey(1) & 0xFF == ord("q"):
                 print("Quitting...")
                 if counter:
                     print(f"Total crossings: {counter.count}")
                 break
-            elif key == ord("r") and self.heatmap:
-                self.heatmap.reset()
-                print("Heatmap reset!")
 
         cap.release()
         if writer:
@@ -268,8 +253,7 @@ class Detector:
 
     # ── static image detection ────────────────────────────────────
     def detect_image(self, image_path, save=True):
-        import os
-        frame = cv2.imread(image_path)
+        frame   = cv2.imread(image_path)
         if frame is None:
             print(f"Could not load image: {image_path}")
             return
@@ -291,6 +275,7 @@ class Detector:
             print(f"Detected {count} objects")
 
         if save:
+            import os
             base = os.path.basename(image_path)
             out  = f"output/detected_{base}"
             cv2.imwrite(out, annotated)

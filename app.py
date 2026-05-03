@@ -14,360 +14,305 @@ from datetime import datetime
 # ─────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="SENTINEL — Object Detection",
-    page_icon="⬡",
+    page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # ─────────────────────────────────────────────────────────────────
-#  CUSTOM CSS — Dark Cyberpunk Professional Theme
+#  GLASSMORPHISM CSS
 # ─────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 
-/* ── Global Reset ── */
+/* ── Global ── */
 *, *::before, *::after { box-sizing: border-box; }
 
-html, body, [data-testid="stAppViewContainer"] {
-    background: #020408 !important;
-    color: #c8d8e8 !important;
-}
-
 [data-testid="stAppViewContainer"] {
-    background:
-        radial-gradient(ellipse at 20% 50%, rgba(0,255,180,0.03) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 20%, rgba(0,150,255,0.04) 0%, transparent 50%),
-        repeating-linear-gradient(
-            0deg,
-            transparent,
-            transparent 40px,
-            rgba(0,255,180,0.015) 40px,
-            rgba(0,255,180,0.015) 41px
-        ),
-        repeating-linear-gradient(
-            90deg,
-            transparent,
-            transparent 40px,
-            rgba(0,255,180,0.015) 40px,
-            rgba(0,255,180,0.015) 41px
-        ),
-        #020408 !important;
+    background: linear-gradient(135deg,#e8f4fd 0%,#f0e8ff 40%,#fde8f4 70%,#e8fdf4 100%) !important;
+    font-family: 'DM Sans', sans-serif !important;
+}
+[data-testid="stAppViewContainer"]::before {
+    content: '';
+    position: fixed;
+    width: 420px; height: 420px;
+    background: radial-gradient(circle, rgba(120,180,255,0.18), transparent 70%);
+    top: -100px; left: -80px;
+    pointer-events: none; z-index: 0;
+}
+[data-testid="stAppViewContainer"]::after {
+    content: '';
+    position: fixed;
+    width: 350px; height: 350px;
+    background: radial-gradient(circle, rgba(200,140,255,0.15), transparent 70%);
+    bottom: -80px; right: -60px;
+    pointer-events: none; z-index: 0;
 }
 
 /* ── Sidebar ── */
 [data-testid="stSidebar"] {
-    background: #050c10 !important;
-    border-right: 1px solid rgba(0,255,180,0.15) !important;
+    background: rgba(255,255,255,0.55) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-right: 1px solid rgba(255,255,255,0.8) !important;
 }
-[data-testid="stSidebar"]::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #00ffb4, #00aaff, #00ffb4);
-    animation: scanline 3s linear infinite;
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] span {
+    font-family: 'DM Mono', monospace !important;
+    font-size: 11px !important;
+    color: rgba(100,90,140,0.75) !important;
 }
-@keyframes scanline {
-    0%   { opacity: 1; }
-    50%  { opacity: 0.4; }
-    100% { opacity: 1; }
+[data-testid="stSidebar"] h1,
+[data-testid="stSidebar"] h2,
+[data-testid="stSidebar"] h3 {
+    font-family: 'DM Mono', monospace !important;
+    font-size: 10px !important;
+    letter-spacing: 2px !important;
+    color: rgba(91,143,249,0.85) !important;
+    text-transform: uppercase !important;
 }
 
-/* ── Hide default streamlit elements ── */
+/* ── Hide defaults ── */
 #MainMenu, footer, header { visibility: hidden; }
 [data-testid="stToolbar"] { display: none; }
 
-/* ── Typography ── */
-h1, h2, h3 {
-    font-family: 'Orbitron', monospace !important;
+/* ── Buttons ── */
+[data-testid="stButton"] button {
+    font-family: 'DM Mono', monospace !important;
+    font-size: 11px !important;
     letter-spacing: 2px !important;
+    background: linear-gradient(135deg, #5b8ff9, #a855f7) !important;
+    border: none !important;
+    color: white !important;
+    border-radius: 10px !important;
+    width: 100% !important;
+    padding: 0.65rem 1rem !important;
+    box-shadow: 0 4px 15px rgba(91,143,249,0.3) !important;
+    transition: all 0.2s ease !important;
 }
-p, label, div, span {
-    font-family: 'Rajdhani', sans-serif !important;
-}
-code, pre {
-    font-family: 'Share Tech Mono', monospace !important;
+[data-testid="stButton"] button:hover {
+    box-shadow: 0 6px 20px rgba(91,143,249,0.45) !important;
+    transform: translateY(-1px) !important;
 }
 
-/* ── Main title ── */
+/* ── Metrics ── */
+[data-testid="stMetric"] {
+    background: rgba(255,255,255,0.5) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255,255,255,0.75) !important;
+    border-radius: 14px !important;
+    padding: 14px 16px !important;
+}
+[data-testid="stMetric"] label {
+    font-family: 'DM Mono', monospace !important;
+    font-size: 9px !important;
+    letter-spacing: 2px !important;
+    color: rgba(100,90,140,0.5) !important;
+    text-transform: uppercase !important;
+}
+[data-testid="stMetric"] [data-testid="stMetricValue"] {
+    font-family: 'DM Mono', monospace !important;
+    font-size: 26px !important;
+    font-weight: 500 !important;
+    background: linear-gradient(135deg, #5b8ff9, #a855f7) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+[data-testid="stMetric"] [data-testid="stMetricDelta"] {
+    font-family: 'DM Mono', monospace !important;
+    font-size: 10px !important;
+}
+
+/* ── Selectbox & Multiselect ── */
+[data-testid="stSelectbox"] > div > div,
+[data-testid="stMultiSelect"] > div > div {
+    background: rgba(255,255,255,0.6) !important;
+    border: 1px solid rgba(200,190,230,0.5) !important;
+    border-radius: 10px !important;
+    font-family: 'DM Mono', monospace !important;
+    font-size: 11px !important;
+    color: rgba(80,70,120,0.8) !important;
+}
+
+/* ── Sliders ── */
+[data-testid="stSlider"] [data-baseweb="slider"] div div div div {
+    background: linear-gradient(90deg,#5b8ff9,#a855f7) !important;
+}
+[data-testid="stSlider"] label {
+    font-family: 'DM Mono', monospace !important;
+    font-size: 10px !important;
+    color: rgba(100,90,140,0.65) !important;
+    letter-spacing: 1px !important;
+}
+
+/* ── Toggle ── */
+[data-testid="stToggle"] label {
+    font-family: 'DM Mono', monospace !important;
+    font-size: 11px !important;
+    color: rgba(100,90,140,0.75) !important;
+}
+
+/* ── Radio ── */
+[data-testid="stRadio"] label {
+    font-family: 'DM Mono', monospace !important;
+    font-size: 11px !important;
+    color: rgba(100,90,140,0.75) !important;
+}
+
+/* ── File uploader ── */
+[data-testid="stFileUploader"] {
+    background: rgba(255,255,255,0.45) !important;
+    border: 1.5px dashed rgba(91,143,249,0.35) !important;
+    border-radius: 12px !important;
+}
+
+/* ── Divider ── */
+hr {
+    border-color: rgba(180,170,220,0.2) !important;
+    margin: 0.75rem 0 !important;
+}
+
+/* ── Alerts ── */
+[data-testid="stAlert"] {
+    background: rgba(255,255,255,0.5) !important;
+    border: 1px solid rgba(91,143,249,0.25) !important;
+    border-radius: 10px !important;
+    font-family: 'DM Mono', monospace !important;
+    font-size: 11px !important;
+    backdrop-filter: blur(8px) !important;
+}
+
+/* ── Dataframe ── */
+[data-testid="stDataFrame"] {
+    background: rgba(255,255,255,0.5) !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(255,255,255,0.75) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+    background: rgba(91,143,249,0.3);
+    border-radius: 2px;
+}
+
+/* ── Custom components ── */
 .sentinel-title {
-    font-family: 'Orbitron', monospace;
-    font-size: 2.8rem;
-    font-weight: 900;
+    font-family: 'DM Mono', monospace;
+    font-size: 2.4rem;
+    font-weight: 500;
     letter-spacing: 6px;
-    background: linear-gradient(135deg, #00ffb4 0%, #00aaff 50%, #00ffb4 100%);
+    background: linear-gradient(135deg, #5b8ff9 0%, #a855f7 50%, #f43f5e 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     text-align: center;
     padding: 1rem 0 0.2rem;
-    filter: drop-shadow(0 0 20px rgba(0,255,180,0.3));
 }
 .sentinel-sub {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.85rem;
-    color: rgba(0,255,180,0.5);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: rgba(100,90,140,0.45);
     text-align: center;
-    letter-spacing: 4px;
+    letter-spacing: 3px;
     margin-bottom: 1.5rem;
 }
-
-/* ── Metric Cards ── */
-.metric-card {
-    background: linear-gradient(135deg, #050f15 0%, #081820 100%);
-    border: 1px solid rgba(0,255,180,0.2);
-    border-radius: 4px;
-    padding: 1.2rem 1.5rem;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
+.glass-card {
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.8);
+    border-radius: 16px;
+    padding: 1rem 1.25rem;
 }
-.metric-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 3px; height: 100%;
-    background: linear-gradient(180deg, #00ffb4, #00aaff);
-}
-.metric-card::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, #00ffb4, transparent);
-}
-.metric-label {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.7rem;
-    color: rgba(0,255,180,0.6);
+.section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
     letter-spacing: 3px;
+    color: rgba(91,143,249,0.6);
     text-transform: uppercase;
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(180,170,220,0.2);
+    padding-bottom: 0.4rem;
 }
-.metric-value {
-    font-family: 'Orbitron', monospace;
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: #00ffb4;
-    line-height: 1;
-    text-shadow: 0 0 20px rgba(0,255,180,0.5);
-}
-.metric-value.alert-active {
-    color: #ff4444;
-    text-shadow: 0 0 20px rgba(255,68,68,0.6);
-    animation: pulse-alert 0.8s ease-in-out infinite;
-}
-@keyframes pulse-alert {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: 0.6; }
-}
-.metric-unit {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.75rem;
-    color: rgba(200,216,232,0.4);
-    margin-top: 0.3rem;
-}
-
-/* ── Detection Log ── */
 .log-container {
-    background: #020a0e;
-    border: 1px solid rgba(0,255,180,0.1);
-    border-radius: 4px;
-    padding: 1rem;
-    height: 280px;
+    background: rgba(255,255,255,0.4);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.7);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    height: 260px;
     overflow-y: auto;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.75rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
 }
 .log-entry {
-    padding: 3px 0;
-    border-bottom: 1px solid rgba(0,255,180,0.05);
     display: flex;
-    gap: 12px;
+    gap: 10px;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(180,170,220,0.12);
+    align-items: center;
 }
-.log-time  { color: rgba(0,255,180,0.4); min-width: 85px; }
-.log-class { color: #00aaff; min-width: 100px; }
-.log-conf  { color: rgba(200,216,232,0.6); }
-.log-alert { color: #ff4444; font-weight: bold; }
-
-/* ── Section Headers ── */
-.section-header {
-    font-family: 'Orbitron', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 4px;
-    color: rgba(0,255,180,0.5);
-    text-transform: uppercase;
-    border-bottom: 1px solid rgba(0,255,180,0.1);
-    padding-bottom: 0.5rem;
-    margin: 1.5rem 0 1rem;
-}
-
-/* ── Video Feed Border ── */
-.video-wrapper {
-    border: 1px solid rgba(0,255,180,0.2);
-    border-radius: 4px;
-    overflow: hidden;
-    position: relative;
-    background: #000;
-}
-.video-wrapper::before {
-    content: '⬡ LIVE FEED';
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem;
-    color: #00ffb4;
-    letter-spacing: 3px;
-    position: absolute;
-    top: 10px; left: 14px;
-    z-index: 10;
-    background: rgba(0,0,0,0.7);
-    padding: 2px 8px;
-    border: 1px solid rgba(0,255,180,0.3);
-}
-
-/* ── Sliders ── */
-[data-testid="stSlider"] .st-emotion-cache-1gv3huu {
-    background: rgba(0,255,180,0.15) !important;
-}
-[data-testid="stSlider"] [data-baseweb="slider"] div div div div {
-    background: #00ffb4 !important;
-}
-
-/* ── Buttons ── */
-[data-testid="stButton"] button {
-    font-family: 'Orbitron', monospace !important;
-    font-size: 0.75rem !important;
-    letter-spacing: 3px !important;
-    background: transparent !important;
-    border: 1px solid rgba(0,255,180,0.4) !important;
-    color: #00ffb4 !important;
-    border-radius: 2px !important;
-    padding: 0.6rem 2rem !important;
-    transition: all 0.2s ease !important;
-    width: 100%;
-}
-[data-testid="stButton"] button:hover {
-    background: rgba(0,255,180,0.1) !important;
-    border-color: #00ffb4 !important;
-    box-shadow: 0 0 20px rgba(0,255,180,0.2) !important;
-}
-
-/* ── Selectbox + Multiselect ── */
-[data-testid="stSelectbox"] > div > div,
-[data-testid="stMultiSelect"] > div > div {
-    background: #050f15 !important;
-    border-color: rgba(0,255,180,0.2) !important;
-    color: #c8d8e8 !important;
-    border-radius: 2px !important;
-}
-
-/* ── Radio ── */
-[data-testid="stRadio"] label {
-    font-family: 'Share Tech Mono', monospace !important;
-    font-size: 0.8rem !important;
-    color: rgba(200,216,232,0.7) !important;
-}
-
-/* ── Sidebar labels ── */
-[data-testid="stSidebar"] label,
-[data-testid="stSidebar"] p {
-    font-family: 'Share Tech Mono', monospace !important;
-    font-size: 0.75rem !important;
-    color: rgba(0,255,180,0.7) !important;
-    letter-spacing: 1px !important;
-}
-[data-testid="stSidebar"] h1,
-[data-testid="stSidebar"] h2,
-[data-testid="stSidebar"] h3 {
-    font-family: 'Orbitron', monospace !important;
-    font-size: 0.8rem !important;
-    color: #00ffb4 !important;
-    letter-spacing: 3px !important;
-}
-
-/* ── Divider ── */
-hr {
-    border-color: rgba(0,255,180,0.1) !important;
-    margin: 1rem 0 !important;
-}
-
-/* ── Status indicator ── */
-.status-dot {
-    display: inline-block;
-    width: 8px; height: 8px;
+.log-dot {
+    width: 5px; height: 5px;
     border-radius: 50%;
-    background: #00ffb4;
-    box-shadow: 0 0 8px #00ffb4;
-    animation: blink 1.5s ease-in-out infinite;
-    margin-right: 8px;
+    flex-shrink: 0;
 }
-.status-dot.inactive {
-    background: rgba(200,216,232,0.2);
-    box-shadow: none;
-    animation: none;
-}
-@keyframes blink {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: 0.3; }
-}
-
-/* ── Class badges ── */
-.class-badge {
-    display: inline-block;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem;
-    padding: 2px 8px;
-    border: 1px solid rgba(0,170,255,0.4);
+.log-time  { color: rgba(100,90,140,0.35); min-width: 55px; }
+.log-class { min-width: 55px; font-weight: 500; }
+.log-conf  { color: rgba(100,90,140,0.45); }
+.stat-bar-wrap {
+    background: rgba(180,170,220,0.15);
     border-radius: 2px;
-    color: #00aaff;
-    background: rgba(0,170,255,0.08);
-    margin: 2px;
-    letter-spacing: 1px;
-}
-
-/* ── Progress bars ── */
-.conf-bar-wrap {
-    background: rgba(0,255,180,0.08);
-    border-radius: 2px;
-    height: 4px;
+    height: 3px;
     margin-top: 4px;
 }
-.conf-bar {
-    background: linear-gradient(90deg, #00ffb4, #00aaff);
-    height: 4px;
-    border-radius: 2px;
-    transition: width 0.3s ease;
-}
-
-/* ── Table ── */
-[data-testid="stDataFrame"] {
-    font-family: 'Share Tech Mono', monospace !important;
-    font-size: 0.75rem !important;
-}
-
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: #020408; }
-::-webkit-scrollbar-thumb {
-    background: rgba(0,255,180,0.3);
+.stat-bar {
+    height: 3px;
     border-radius: 2px;
 }
-
-/* ── Upload area ── */
-[data-testid="stFileUploader"] {
-    background: #050f15 !important;
-    border: 1px dashed rgba(0,255,180,0.3) !important;
-    border-radius: 4px !important;
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    background: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.9);
+    border-radius: 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: rgba(80,140,80,0.8);
 }
-
-/* ── Info/warning boxes ── */
-[data-testid="stAlert"] {
-    background: rgba(0,255,180,0.05) !important;
-    border: 1px solid rgba(0,255,180,0.2) !important;
-    border-radius: 2px !important;
-    color: #c8d8e8 !important;
-    font-family: 'Share Tech Mono', monospace !important;
-    font-size: 0.8rem !important;
+.live-dot {
+    width: 6px; height: 6px;
+    background: #4ade80;
+    border-radius: 50%;
+    animation: blink 1.4s infinite;
+}
+@keyframes blink {
+    0%,100% { opacity:1; box-shadow: 0 0 0 3px rgba(74,222,128,0.2); }
+    50%      { opacity:.4; box-shadow: none; }
+}
+.standby-screen {
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.35);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.75);
+    border-radius: 16px;
+}
+.metric-alert [data-testid="stMetricValue"] {
+    background: linear-gradient(135deg,#f43f5e,#fb923c) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -375,36 +320,39 @@ hr {
 # ─────────────────────────────────────────────────────────────────
 #  SESSION STATE
 # ─────────────────────────────────────────────────────────────────
-if "detection_log"   not in st.session_state:
-    st.session_state.detection_log = deque(maxlen=50)
-if "class_counts"    not in st.session_state:
+if "detection_log"    not in st.session_state:
+    st.session_state.detection_log = deque(maxlen=60)
+if "class_counts"     not in st.session_state:
     st.session_state.class_counts = defaultdict(int)
 if "total_detections" not in st.session_state:
     st.session_state.total_detections = 0
-if "running"         not in st.session_state:
+if "running"          not in st.session_state:
     st.session_state.running = False
-if "fps_history"     not in st.session_state:
+if "fps_history"      not in st.session_state:
     st.session_state.fps_history = deque(maxlen=30)
 
 # ─────────────────────────────────────────────────────────────────
 #  HEADER
 # ─────────────────────────────────────────────────────────────────
-st.markdown('<div class="sentinel-title">SENTINEL</div>', unsafe_allow_html=True)
-st.markdown('<div class="sentinel-sub">⬡ REAL-TIME OBJECT DETECTION SYSTEM ⬡ YOLOv8 + BYTETRACK</div>', unsafe_allow_html=True)
-
-# Live clock
-clock_placeholder = st.empty()
-now = datetime.now().strftime("%Y.%m.%d  //  %H:%M:%S")
-clock_placeholder.markdown(
-    f'<div style="text-align:center;font-family:Share Tech Mono,monospace;'
-    f'font-size:0.7rem;color:rgba(0,255,180,0.35);letter-spacing:4px;'
-    f'margin-bottom:1.5rem;">{now}</div>',
+st.markdown('<div class="sentinel-title">SENTINEL</div>',
+            unsafe_allow_html=True)
+st.markdown(
+    '<div class="sentinel-sub">'
+    '⬡ real-time object detection system · yolov8 + bytetrack'
+    '</div>',
     unsafe_allow_html=True
 )
 
 # ─────────────────────────────────────────────────────────────────
 #  SIDEBAR
 # ─────────────────────────────────────────────────────────────────
+ALL_CLASSES = {
+    "person":0,"bicycle":1,"car":2,"motorcycle":3,
+    "bus":5,"truck":7,"cat":15,"dog":16,
+    "laptop":63,"chair":56,"bottle":39,"phone":67,
+    "bird":14,"backpack":24
+}
+
 with st.sidebar:
     st.markdown("### ⬡ SYSTEM CONFIG")
     st.divider()
@@ -412,34 +360,23 @@ with st.sidebar:
     st.markdown("**MODEL**")
     model_name = st.selectbox(
         "", ["yolov8n.pt","yolov8s.pt","yolov8m.pt"],
-        index=0,
-        label_visibility="collapsed"
+        index=0, label_visibility="collapsed",
+        help="n=fastest · s=balanced · m=most accurate"
     )
 
     st.divider()
-    st.markdown("**DETECTION THRESHOLDS**")
-
-    conf_thresh = st.slider("CONFIDENCE", 0.1, 1.0, 0.5, 0.05)
-    iou_thresh  = st.slider("IoU NMS",    0.1, 1.0, 0.45, 0.05)
+    st.markdown("**THRESHOLDS**")
+    conf_thresh = st.slider("Confidence", 0.1, 1.0, 0.5, 0.05)
+    iou_thresh  = st.slider("IoU / NMS",  0.1, 1.0, 0.45, 0.05)
     img_size    = st.select_slider(
-        "INFERENCE SIZE",
-        options=[320, 416, 512, 640],
-        value=640
+        "Image size",
+        options=[320, 416, 512, 640], value=640
     )
 
     st.divider()
     st.markdown("**CLASS FILTER**")
-
-    ALL_CLASSES = {
-        "person":0,"bicycle":1,"car":2,"motorcycle":3,
-        "bus":5,"truck":7,"cat":15,"dog":16,
-        "laptop":63,"chair":56,"bottle":39,"phone":67,
-        "bird":14,"backpack":24,"umbrella":25
-    }
-
     selected_classes = st.multiselect(
-        "",
-        options=list(ALL_CLASSES.keys()),
+        "", list(ALL_CLASSES.keys()),
         default=["person","car"],
         label_visibility="collapsed"
     )
@@ -448,24 +385,22 @@ with st.sidebar:
 
     st.divider()
     st.markdown("**ALERT SYSTEM**")
-    alert_enabled  = st.toggle("ENABLE ALERT", value=True)
+    alert_enabled  = st.toggle("Enable alert", value=True)
     alert_class    = st.selectbox(
-        "TRIGGER CLASS", list(ALL_CLASSES.keys()),
-        label_visibility="visible"
+        "Alert trigger class", list(ALL_CLASSES.keys())
     )
     alert_class_id = ALL_CLASSES[alert_class]
 
     st.divider()
     st.markdown("**FEATURES**")
-    enable_counter = st.toggle("LINE COUNTER",   value=True)
-    show_trails    = st.toggle("OBJECT TRAILS",  value=True)
-    save_output    = st.toggle("SAVE VIDEO",     value=False)
+    enable_counter = st.toggle("Line counter",  value=True)
+    show_trails    = st.toggle("Object trails", value=True)
+    save_output    = st.toggle("Save video",    value=False)
 
     st.divider()
     st.markdown("**INPUT SOURCE**")
     source = st.radio(
-        "",
-        ["⬡  Webcam", "⬡  Image", "⬡  Video"],
+        "", ["Webcam","Upload Image","Upload Video"],
         label_visibility="collapsed"
     )
 
@@ -486,34 +421,37 @@ def load_model(name):
 
 model  = load_model(model_name)
 colors = {}
-
-def get_color(tid):
-    if tid not in colors:
-        random.seed(int(tid))
-        colors[tid] = (
-            random.randint(50,255),
-            random.randint(50,255),
-            random.randint(50,255),
-        )
-    return colors[tid]
-
-# Trail history
 trail_history = defaultdict(lambda: deque(maxlen=25))
 
 # ─────────────────────────────────────────────────────────────────
-#  DRAWING HELPERS
+#  HELPERS
 # ─────────────────────────────────────────────────────────────────
+# Glassmorphism palette for bounding boxes
+BOX_COLORS = [
+    (91, 143, 249),   # blue
+    (168, 85, 247),   # purple
+    (244, 63, 94),    # red/pink
+    (34, 197, 94),    # green
+    (245, 158, 11),   # amber
+    (14, 165, 233),   # sky
+    (236, 72, 153),   # pink
+    (99, 102, 241),   # indigo
+]
+
+def get_color(track_id):
+    return BOX_COLORS[int(track_id) % len(BOX_COLORS)]
+
+
 def draw_frame(frame, results, counter=None):
     alert_triggered = False
     detected_now    = []
-
     h, w = frame.shape[:2]
 
-    # Subtle scanline overlay
-    overlay = frame.copy()
-    for y in range(0, h, 3):
-        cv2.line(overlay, (0,y), (w,y), (0,0,0), 1)
-    frame = cv2.addWeighted(frame, 0.85, overlay, 0.15, 0)
+    # Subtle vignette overlay
+    overlay = np.zeros_like(frame, dtype=np.uint8)
+    cv2.circle(overlay, (w//2, h//2),
+               int(max(w,h)*0.75), (255,255,255), -1)
+    frame = cv2.addWeighted(frame, 0.92, overlay, 0.08, 0)
 
     if results[0].boxes.id is not None:
         boxes   = results[0].boxes.xyxy.cpu().numpy()
@@ -522,18 +460,23 @@ def draw_frame(frame, results, counter=None):
         confs   = results[0].boxes.conf.cpu().numpy()
 
         for box, tid, cid, conf in zip(boxes, ids, classes, confs):
-            x1,y1,x2,y2 = map(int, box)
-            color        = get_color(tid)
-            name         = model.names[cid]
-            cx,cy        = (x1+x2)//2, (y1+y2)//2
+            x1, y1, x2, y2 = map(int, box)
+            r, g, b         = get_color(tid)
+            bgr              = (b, g, r)
+            name             = model.names[cid]
+            cx, cy           = (x1+x2)//2, (y1+y2)//2
 
-            # Trail
+            # Object trail
             if show_trails:
                 trail_history[tid].append((cx, y2))
                 pts = list(trail_history[tid])
                 for i in range(1, len(pts)):
                     alpha = i / len(pts)
-                    tc    = tuple(int(c * alpha) for c in color)
+                    tc = (
+                        int(b * alpha),
+                        int(g * alpha),
+                        int(r * alpha)
+                    )
                     cv2.line(frame, pts[i-1], pts[i], tc, 2)
 
             # Alert highlight
@@ -541,42 +484,52 @@ def draw_frame(frame, results, counter=None):
             if is_alert:
                 alert_triggered = True
                 cv2.rectangle(frame,
-                    (x1-5, y1-5), (x2+5, y2+5),
-                    (0,0,220), 3)
-                # Corners glow
-                for cx2,cy2,dx,dy in [
-                    (x1,y1,1,1),(x2,y1,-1,1),
-                    (x1,y2,1,-1),(x2,y2,-1,-1)]:
-                    cv2.line(frame,(cx2,cy2),(cx2+dx*20,cy2),(0,0,255),3)
-                    cv2.line(frame,(cx2,cy2),(cx2,cy2+dy*20),(0,0,255),3)
+                    (x1-4, y1-4), (x2+4, y2+4),
+                    (63, 63, 244), 3)
 
-            # Corner-style bounding box (not full rectangle)
-            clen = 18
+            # Frosted box fill
+            roi = frame[y1:y2, x1:x2]
+            if roi.size > 0:
+                frost = cv2.addWeighted(
+                    roi, 0.85,
+                    np.full_like(roi, [b//4, g//4, r//4]), 0.15, 0
+                )
+                frame[y1:y2, x1:x2] = frost
+
+            # Main box border
+            cv2.rectangle(frame, (x1,y1), (x2,y2), bgr, 1)
+
+            # Corner accents
+            clen = 16
             for px,py,dx,dy in [
                 (x1,y1, 1, 1),(x2,y1,-1, 1),
                 (x1,y2, 1,-1),(x2,y2,-1,-1)]:
-                cv2.line(frame,(px,py),(px+dx*clen,py),color,2)
-                cv2.line(frame,(px,py),(px,py+dy*clen),color,2)
+                cv2.line(frame,(px,py),(px+dx*clen,py),bgr,2)
+                cv2.line(frame,(px,py),(px,py+dy*clen),bgr,2)
 
             # Center dot
-            cv2.circle(frame,(cx,(y1+y2)//2),3,color,-1)
+            cv2.circle(frame, (cx,(y1+y2)//2), 3, bgr, -1)
 
-            # Label
+            # Label background (frosted)
             label  = f"{name}  [{tid}]  {conf:.0%}"
-            fs     = 0.55
-            th     = 2
-            (tw,tht),_ = cv2.getTextSize(
+            fs, th = 0.5, 1
+            (tw, tht), _ = cv2.getTextSize(
                 label, cv2.FONT_HERSHEY_SIMPLEX, fs, th)
-            cv2.rectangle(frame,
-                (x1, y1-tht-12),(x1+tw+8, y1),
-                (10,10,10), -1)
-            cv2.rectangle(frame,
-                (x1, y1-tht-12),(x1+tw+8, y1),
-                color, 1)
+            lx1, ly1 = x1, y1 - tht - 12
+            lx2, ly2 = x1 + tw + 10, y1
+            label_roi = frame[max(0,ly1):ly2, lx1:min(w,lx2)]
+            if label_roi.size > 0:
+                frost_lbl = cv2.addWeighted(
+                    label_roi, 0.6,
+                    np.full_like(label_roi, [b//3, g//3, r//3]), 0.4, 0
+                )
+                frame[max(0,ly1):ly2, lx1:min(w,lx2)] = frost_lbl
+            cv2.rectangle(frame, (lx1, max(0,ly1)),
+                          (min(w,lx2), ly2), bgr, 1)
             cv2.putText(frame, label,
-                (x1+4, y1-5),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                fs, color, th)
+                        (x1+5, y1-5),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        fs, (255,255,255), th)
 
             if counter:
                 counter.update(tid, box)
@@ -589,35 +542,43 @@ def draw_frame(frame, results, counter=None):
 def draw_hud(frame, fps, count, crossings, alert):
     h, w = frame.shape[:2]
 
-    # Top bar
-    cv2.rectangle(frame, (0,0), (w,52), (5,10,15), -1)
-    cv2.line(frame, (0,52), (w,52), (0,255,180), 1)
+    # Top bar frosted
+    bar = frame[0:52, 0:w].copy()
+    bar = cv2.addWeighted(bar, 0.4,
+          np.full_like(bar, [240,240,255]), 0.6, 0)
+    frame[0:52, 0:w] = bar
+    cv2.line(frame, (0,52), (w,52), (200,190,230), 1)
 
     cv2.putText(frame, "SENTINEL",
         (14,34), cv2.FONT_HERSHEY_SIMPLEX,
-        0.9, (0,255,180), 2)
+        0.85, (91,143,249), 2)
 
     ts = datetime.now().strftime("%H:%M:%S")
     cv2.putText(frame, ts,
-        (w-120,34), cv2.FONT_HERSHEY_SIMPLEX,
-        0.65, (0,200,140), 1)
+        (w-110,34), cv2.FONT_HERSHEY_SIMPLEX,
+        0.6, (168,85,247), 1)
 
-    # Bottom bar
-    cv2.rectangle(frame, (0,h-52), (w,h), (5,10,15), -1)
-    cv2.line(frame, (0,h-52), (w,h-52), (0,255,180), 1)
+    # Bottom bar frosted
+    bar2 = frame[h-44:h, 0:w].copy()
+    bar2 = cv2.addWeighted(bar2, 0.4,
+           np.full_like(bar2, [240,240,255]), 0.6, 0)
+    frame[h-44:h, 0:w] = bar2
+    cv2.line(frame, (0,h-44), (w,h-44), (200,190,230), 1)
 
-    metrics = [
-        (f"FPS  {fps:.0f}",        (0,255,180)),
-        (f"OBJ  {count}",          (0,200,255)),
-        (f"CROSS  {crossings}",    (0,170,255)),
-        (f"ALERT  {'ON' if alert else 'OFF'}", (0,80,255) if alert else (80,80,80)),
+    items = [
+        (f"FPS  {fps:.0f}",       (91,143,249)),
+        (f"OBJ  {count}",         (168,85,247)),
+        (f"CROSS  {crossings}",   (245,158,11)),
+        (f"ALERT  {'ON' if alert else 'OFF'}",
+                                  (244,63,94) if alert else (160,150,190)),
     ]
-    spacing = w // len(metrics)
-    for i,(text,col) in enumerate(metrics):
-        cv2.putText(frame, text,
-            (i*spacing+20, h-18),
+    spacing = w // len(items)
+    for i,(txt,col) in enumerate(items):
+        b,g,r = col[2],col[1],col[0]
+        cv2.putText(frame, txt,
+            (i*spacing+20, h-16),
             cv2.FONT_HERSHEY_SIMPLEX,
-            0.6, col, 1)
+            0.55, (b,g,r), 1)
 
     return frame
 
@@ -641,133 +602,131 @@ def process_frame(frame, counter=None):
 # ─────────────────────────────────────────────────────────────────
 #  METRIC CARDS
 # ─────────────────────────────────────────────────────────────────
-def render_metrics(fps=0, objects=0, crossings=0,
-                   alert=False, total=0):
+def render_metrics(fps=0.0, objects=0,
+                   crossings=0, alert=False, total=0):
     c1,c2,c3,c4,c5 = st.columns(5)
-
-    cards = [
-        (c1, "OBJECTS",    str(objects),       "detected",       False),
-        (c2, "AVG FPS",    f"{fps:.1f}",       "frames/sec",     False),
-        (c3, "CROSSINGS",  str(crossings),     "line events",    False),
-        (c4, "TOTAL",      str(total),         "all time",       False),
-        (c5, "ALERT",      "⚠ ACTIVE" if alert else "CLEAR",
-                                               alert_class,      alert),
-    ]
-    for col,(label,val,unit,is_alert) in [(c[0],c[1:]) for c in cards]:
-        alert_cls = "alert-active" if is_alert else ""
-        col.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">{label}</div>
-            <div class="metric-value {alert_cls}">{val}</div>
-            <div class="metric-unit">{unit}</div>
-        </div>
-        """, unsafe_allow_html=True)
+    c1.metric("🎯  Objects",   objects,   help="Currently detected")
+    c2.metric("⚡  Avg FPS",   f"{fps:.1f}", help="Frames per second")
+    c3.metric("🚶  Crossings", crossings, help="Line crossing events")
+    c4.metric("📊  Total",     total,     help="All time detections")
+    c5.metric("🚨  Alert",
+              f"⚠ {alert_class.upper()}" if alert else "CLEAR",
+              help=f"Triggers on: {alert_class}")
 
 
-metric_placeholder = st.empty()
-with metric_placeholder.container():
+metric_ph = st.empty()
+with metric_ph.container():
     render_metrics()
 
-st.markdown('<div class="section-header">⬡ DETECTION FEED</div>',
-            unsafe_allow_html=True)
+st.divider()
 
 # ─────────────────────────────────────────────────────────────────
 #  MAIN LAYOUT
 # ─────────────────────────────────────────────────────────────────
-vid_col, log_col = st.columns([3, 1])
-
-with vid_col:
-    st.markdown('<div class="video-wrapper">', unsafe_allow_html=True)
-    video_placeholder = st.empty()
-    st.markdown('</div>', unsafe_allow_html=True)
-
-with log_col:
-    st.markdown('<div class="section-header">⬡ DETECTION LOG</div>',
-                unsafe_allow_html=True)
-    log_placeholder = st.empty()
-
-    st.markdown('<div class="section-header">⬡ CLASS STATS</div>',
-                unsafe_allow_html=True)
-    stats_placeholder = st.empty()
-
-
 def update_log():
-    entries = list(st.session_state.detection_log)[-18:]
+    entries = list(st.session_state.detection_log)[-20:]
+    CLASS_COLORS = {
+        "person":"#5b8ff9","car":"#a855f7","bus":"#f59e0b",
+        "truck":"#22c55e","cat":"#f43f5e","dog":"#0ea5e9",
+        "motorcycle":"#ec4899","bicycle":"#6366f1",
+    }
     html = '<div class="log-container">'
     for e in reversed(entries):
-        cls  = "log-alert" if e["alert"] else "log-class"
+        col = CLASS_COLORS.get(e["class"], "#a855f7")
+        cls = "log-alert" if e["alert"] else "log-class"
         html += f"""
         <div class="log-entry">
+            <div class="log-dot" style="background:{col}"></div>
             <span class="log-time">{e['time']}</span>
-            <span class="{cls}">{e['class']}</span>
+            <span class="{cls}" style="color:{col}">{e['class']}</span>
             <span class="log-conf">{e['conf']:.0%}</span>
         </div>"""
     html += "</div>"
-    log_placeholder.markdown(html, unsafe_allow_html=True)
+    log_ph.markdown(html, unsafe_allow_html=True)
 
 
 def update_stats():
     counts = dict(sorted(
         st.session_state.class_counts.items(),
         key=lambda x: x[1], reverse=True
-    )[:8])
+    )[:6])
     if not counts:
-        stats_placeholder.markdown(
-            '<div class="log-container" style="height:140px;">'
-            '<span style="color:rgba(0,255,180,0.3);'
-            'font-family:Share Tech Mono,monospace;font-size:0.7rem;">'
-            'NO DATA YET...</span></div>',
-            unsafe_allow_html=True)
+        stats_ph.markdown(
+            '<div class="log-container" style="height:160px;'
+            'display:flex;align-items:center;justify-content:center;">'
+            '<span style="color:rgba(100,90,140,0.3);'
+            'font-family:DM Mono,monospace;font-size:0.7rem;">'
+            'no data yet...</span></div>',
+            unsafe_allow_html=True
+        )
         return
-    mx  = max(counts.values())
+
+    GRADIENTS = [
+        "linear-gradient(90deg,#5b8ff9,#818cf8)",
+        "linear-gradient(90deg,#a855f7,#c084fc)",
+        "linear-gradient(90deg,#f59e0b,#fbbf24)",
+        "linear-gradient(90deg,#22c55e,#4ade80)",
+        "linear-gradient(90deg,#f43f5e,#fb7185)",
+        "linear-gradient(90deg,#0ea5e9,#38bdf8)",
+    ]
+    mx   = max(counts.values())
     html = '<div class="log-container" style="height:200px;">'
-    for cls, cnt in counts.items():
-        pct = cnt / mx * 100
+    for i,(cls,cnt) in enumerate(counts.items()):
+        pct = cnt/mx*100
+        grad = GRADIENTS[i % len(GRADIENTS)]
         html += f"""
-        <div style="margin-bottom:10px;">
-            <div style="display:flex;justify-content:space-between;
-                font-family:Share Tech Mono,monospace;font-size:0.7rem;">
-                <span style="color:#00aaff;">{cls}</span>
-                <span style="color:rgba(200,216,232,0.5);">{cnt}</span>
-            </div>
-            <div class="conf-bar-wrap">
-                <div class="conf-bar" style="width:{pct}%"></div>
-            </div>
+        <div class="stat-row" style="margin-bottom:11px;">
+          <div style="display:flex;justify-content:space-between;
+            font-family:DM Mono,monospace;font-size:0.72rem;margin-bottom:4px;">
+            <span style="color:rgba(80,70,120,0.75)">{cls}</span>
+            <span style="color:rgba(100,90,140,0.4)">{cnt}</span>
+          </div>
+          <div class="stat-bar-wrap">
+            <div class="stat-bar" style="width:{pct}%;background:{grad}"></div>
+          </div>
         </div>"""
     html += "</div>"
-    stats_placeholder.markdown(html, unsafe_allow_html=True)
+    stats_ph.markdown(html, unsafe_allow_html=True)
 
 
-# Initial render
+vid_col, right_col = st.columns([3,1])
+
+with vid_col:
+    video_ph = st.empty()
+
+with right_col:
+    st.markdown('<div class="section-label">Detection log</div>',
+                unsafe_allow_html=True)
+    log_ph = st.empty()
+    st.markdown('<div class="section-label" style="margin-top:10px">Class stats</div>',
+                unsafe_allow_html=True)
+    stats_ph = st.empty()
+
 update_log()
 update_stats()
 
 # ─────────────────────────────────────────────────────────────────
-#  SOURCE: IMAGE
+#  SOURCE: UPLOAD IMAGE
 # ─────────────────────────────────────────────────────────────────
-if "Image" in source:
-    uploaded = st.file_uploader(
-        "DROP IMAGE FILE", type=["jpg","jpeg","png"])
-
-    if uploaded:
-        file_bytes = np.frombuffer(uploaded.read(), np.uint8)
+if source == "Upload Image":
+    up = st.file_uploader("Drop image here",
+                           type=["jpg","jpeg","png"])
+    if up:
+        file_bytes = np.frombuffer(up.read(), np.uint8)
         frame      = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
-        results = model(frame,
+        results   = model(frame,
             conf=conf_thresh, iou=iou_thresh,
             classes=class_ids, verbose=False)
-
         annotated = results[0].plot()
         count     = len(results[0].boxes)
-
-        # Draw HUD on image
         annotated = draw_hud(annotated, 0, count, 0, False)
-        video_placeholder.image(
+
+        video_ph.image(
             cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB),
             use_column_width=True
         )
 
-        # Log detections
         for box in results[0].boxes:
             cid  = int(box.cls[0])
             name = model.names[cid]
@@ -780,65 +739,67 @@ if "Image" in source:
             st.session_state.class_counts[name] += 1
             st.session_state.total_detections   += 1
 
-        with metric_placeholder.container():
-            render_metrics(fps=0, objects=count,
-                           crossings=0,
-                           total=st.session_state.total_detections)
+        with metric_ph.container():
+            render_metrics(
+                objects=count,
+                total=st.session_state.total_detections
+            )
         update_log()
         update_stats()
 
-        # Detail table
-        st.markdown('<div class="section-header">⬡ DETECTION TABLE</div>',
-                    unsafe_allow_html=True)
-        rows = []
-        for box in results[0].boxes:
-            cid = int(box.cls[0])
-            rows.append({
-                "CLASS":      model.names[cid],
-                "CONFIDENCE": f"{float(box.conf[0]):.1%}",
-                "X1": int(box.xyxy[0][0]),
-                "Y1": int(box.xyxy[0][1]),
-                "X2": int(box.xyxy[0][2]),
-                "Y2": int(box.xyxy[0][3]),
-            })
-        st.dataframe(rows, use_container_width=True, hide_index=True)
+        if count > 0:
+            st.markdown('<div class="section-label" style="margin-top:1rem">Detection table</div>',
+                        unsafe_allow_html=True)
+            rows = []
+            for box in results[0].boxes:
+                cid = int(box.cls[0])
+                rows.append({
+                    "Class":      model.names[cid],
+                    "Confidence": f"{float(box.conf[0]):.1%}",
+                    "X1": int(box.xyxy[0][0]),
+                    "Y1": int(box.xyxy[0][1]),
+                    "X2": int(box.xyxy[0][2]),
+                    "Y2": int(box.xyxy[0][3]),
+                })
+            st.dataframe(rows,
+                         use_container_width=True,
+                         hide_index=True)
 
 # ─────────────────────────────────────────────────────────────────
-#  SOURCE: VIDEO / WEBCAM
+#  SOURCE: WEBCAM / VIDEO
 # ─────────────────────────────────────────────────────────────────
 else:
-    btn_col1, btn_col2 = st.columns(2)
-    with btn_col1:
+    btn1, btn2 = st.columns(2)
+    with btn1:
         start_btn = st.button("⬡  INITIALIZE SYSTEM")
-    with btn_col2:
+    with btn2:
         stop_btn  = st.button("⬡  TERMINATE")
 
     status_ph = st.empty()
 
     if start_btn:
         st.session_state.running = True
-
     if stop_btn:
         st.session_state.running = False
 
     if st.session_state.running:
         status_ph.markdown(
-            '<div style="font-family:Share Tech Mono,monospace;'
-            'font-size:0.75rem;color:#00ffb4;letter-spacing:2px;">'
-            '<span class="status-dot"></span>SYSTEM ACTIVE</div>',
+            '<div class="status-pill" style="margin:0.5rem auto;'
+            'width:fit-content;display:flex;">'
+            '<div class="live-dot"></div>system active</div>',
             unsafe_allow_html=True
         )
 
         # Open source
-        if "Video" in source:
-            uploaded = st.file_uploader(
-                "DROP VIDEO FILE", type=["mp4","avi","mov"])
-            if not uploaded:
+        if source == "Upload Video":
+            up = st.file_uploader("Drop video here",
+                                   type=["mp4","avi","mov"])
+            if not up:
                 st.session_state.running = False
                 st.stop()
             tfile = tempfile.NamedTemporaryFile(
                 delete=False, suffix=".mp4")
-            tfile.write(uploaded.read())
+            tfile.write(up.read())
             cap = cv2.VideoCapture(tfile.name)
         else:
             cap = cv2.VideoCapture(0)
@@ -846,17 +807,15 @@ else:
             cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
         if not cap.isOpened():
-            st.error("❌ Cannot open source. Check webcam or file.")
+            st.error("❌ Cannot open source.")
             st.session_state.running = False
             st.stop()
 
-        # Counter line
         counter = LineCounter(
             start_point=(50,  360),
             end_point  =(1230,360)
         ) if enable_counter else None
 
-        # Video writer
         writer = None
         if save_output:
             fourcc = cv2.VideoWriter_fourcc(*"mp4v")
@@ -875,58 +834,40 @@ else:
             frame, count, alert, detected = process_frame(
                 frame, counter)
 
-            # FPS
             curr_time = time.time()
             fps       = 1 / max(curr_time - prev_time, 0.001)
             prev_time = curr_time
             st.session_state.fps_history.append(fps)
-            avg_fps = np.mean(st.session_state.fps_history)
+            avg_fps   = float(np.mean(st.session_state.fps_history))
 
-            # HUD
             crossings = counter.count if counter else 0
-            frame = draw_hud(frame, fps, count, crossings, alert)
+            frame     = draw_hud(frame, fps, count, crossings, alert)
 
-            # Draw counter line
             if counter:
                 frame = counter.draw(frame)
 
-            # Show frame
-            video_placeholder.image(
+            video_ph.image(
                 cv2.cvtColor(frame, cv2.COLOR_BGR2RGB),
                 use_column_width=True
             )
 
-            # Save
             if writer:
                 writer.write(frame)
 
-            # Log every 10 frames
-            if frame_count % 10 == 0:
-                for name, conf, tid in detected:
-                    is_alert = alert_enabled and \
-                        model.names.get(
-                            next((int(b.cls[0])
-                                  for b in (
-                                      results[0].boxes
-                                      if hasattr(results[0],'boxes')
-                                      else [])
-                                  if True), -1),
-                            "") == alert_class
+            if frame_count % 8 == 0:
+                for name, conf, _ in detected:
                     st.session_state.detection_log.append({
                         "time":  datetime.now().strftime("%H:%M:%S"),
-                        "class": name,
-                        "conf":  conf,
+                        "class": name, "conf": conf,
                         "alert": alert_enabled and name == alert_class
                     })
                     st.session_state.class_counts[name] += 1
-                    st.session_state.total_detections += 1
+                    st.session_state.total_detections   += 1
 
-                with metric_placeholder.container():
+                with metric_ph.container():
                     render_metrics(
-                        fps=avg_fps,
-                        objects=count,
-                        crossings=crossings,
-                        alert=alert,
+                        fps=avg_fps, objects=count,
+                        crossings=crossings, alert=alert,
                         total=st.session_state.total_detections
                     )
                 update_log()
@@ -939,39 +880,19 @@ else:
             writer.release()
 
         status_ph.markdown(
-            '<div style="font-family:Share Tech Mono,monospace;'
-            'font-size:0.75rem;color:rgba(200,216,232,0.4);'
-            'letter-spacing:2px;">'
-            '<span class="status-dot inactive"></span>'
-            'SYSTEM OFFLINE</div>',
+            '<div style="text-align:center;font-family:DM Mono,monospace;'
+            'font-size:0.7rem;color:rgba(100,90,140,0.4);'
+            'letter-spacing:2px;margin-top:0.5rem;">system offline</div>',
             unsafe_allow_html=True
         )
     else:
-        video_placeholder.markdown("""
-        <div style="
-            height:400px;
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            justify-content:center;
-            border:1px solid rgba(0,255,180,0.1);
-            background:radial-gradient(
-                ellipse at center,
-                rgba(0,255,180,0.03) 0%,
-                transparent 70%);
-            border-radius:4px;">
-            <div style="
-                font-family:Orbitron,monospace;
-                font-size:3rem;
-                color:rgba(0,255,180,0.15);
-                letter-spacing:8px;">⬡</div>
-            <div style="
-                font-family:Share Tech Mono,monospace;
-                font-size:0.75rem;
-                color:rgba(0,255,180,0.25);
-                letter-spacing:4px;
-                margin-top:1rem;">
-                AWAITING INITIALIZATION</div>
+        video_ph.markdown("""
+        <div class="standby-screen">
+            <div style="font-size:2.5rem;margin-bottom:1rem;opacity:.2">🎯</div>
+            <div style="font-family:DM Mono,monospace;font-size:0.75rem;
+                color:rgba(100,90,140,0.35);letter-spacing:3px;">
+                awaiting initialization
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -980,13 +901,9 @@ else:
 # ─────────────────────────────────────────────────────────────────
 st.divider()
 st.markdown("""
-<div style="
-    text-align:center;
-    font-family:Share Tech Mono,monospace;
-    font-size:0.65rem;
-    color:rgba(0,255,180,0.2);
-    letter-spacing:3px;">
-    SENTINEL v1.0  ⬡  YOLOv8 + OPENCV + BYTETRACK + STREAMLIT
-    ⬡  AI COURSE PROJECT
+<div style="text-align:center;font-family:DM Mono,monospace;
+    font-size:0.65rem;color:rgba(100,90,140,0.3);letter-spacing:2px;">
+    sentinel v1.0 &nbsp;·&nbsp; yolov8 + opencv + bytetrack + streamlit
+    &nbsp;·&nbsp; ai course project
 </div>
 """, unsafe_allow_html=True)
