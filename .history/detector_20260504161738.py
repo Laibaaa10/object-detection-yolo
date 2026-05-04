@@ -5,7 +5,8 @@ from ultralytics import YOLO
 from tracker import LineCounter
 from speed_estimator import SpeedEstimator
 from heatmap import Heatmap
-from database import DetectionDB  
+from database import DetectionDB
+
 
 class Detector:
     def __init__(
@@ -15,8 +16,8 @@ class Detector:
         iou=0.45,
         classes=None,
         pixel_per_meter=8.0,
-        enable_heatmap=True,
-        enable_db=True
+        enable_heatmap=True
+        enable_db=True    
     ):
         self.model           = YOLO(model_path)
         self.conf            = conf
@@ -164,7 +165,7 @@ class Detector:
         return frame
 
     # ── webcam loop ───────────────────────────────────────────────
-    def run_webcam(self, camera_index=0, save_output=False,
+def run_webcam(self, camera_index=0, save_output=False,
                    enable_counter=True):
         cap = cv2.VideoCapture(camera_index)
         cap.set(cv2.CAP_PROP_FRAME_WIDTH,  1280)

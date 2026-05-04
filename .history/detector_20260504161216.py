@@ -4,8 +4,8 @@ import random
 from ultralytics import YOLO
 from tracker import LineCounter
 from speed_estimator import SpeedEstimator
-from heatmap import Heatmap
-from database import DetectionDB  
+from heatmap import Heatmapfrom database import DetectionDB 
+
 
 class Detector:
     def __init__(
@@ -15,8 +15,7 @@ class Detector:
         iou=0.45,
         classes=None,
         pixel_per_meter=8.0,
-        enable_heatmap=True,
-        enable_db=True
+        enable_heatmap=True
     ):
         self.model           = YOLO(model_path)
         self.conf            = conf
@@ -28,7 +27,6 @@ class Detector:
             fps=30
         )
         self.heatmap = Heatmap() if enable_heatmap else None
-        self.db      = DetectionDB() if enable_db else None
 
     # ── helpers ───────────────────────────────────────────────────
     def _get_color(self, track_id):
@@ -171,40 +169,46 @@ class Detector:
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
         if not cap.isOpened():
-            print("Cannot open webcam")
+            print("Cannot open webcam. Try camera_index=1")
             return
 
+        # Line counter
         counter = None
         if enable_counter:
             counter = LineCounter(
                 start_point=(50,  430),
                 end_point  =(1230, 430)
             )
+            print("Line counter enabled at y=430")
 
+        # Video writer
         writer = None
         if save_output:
             fourcc = cv2.VideoWriter_fourcc(*"mp4v")
             writer = cv2.VideoWriter(
-                "output/tracked_output.mp4", fourcc, 20, (1280,720))
-
-        # ── Start DB session ──────────────────────────────────────
-        if self.db:
-            class_names = [self.model.names[c]
-                           for c in self.classes] if self.classes else None
-            self.db.start_session(
-                source="webcam",
-                model="yolov8n",
-                classes=class_names
+                "output/tracked_output.mp4",
+                fourcc, 20, (1280, 720)
             )
+            print("Recording to output/tracked_output.mp4")
 
-        prev_time   = time.time()
-        fps_history = []
+        if self.classes:
+            names = [self.model.names[c] for c in self.classes]
+            print(f"Tracking: {', '.join(names)}")
+        else:
+            print("Tracking all classes")
+
+        heatmap_on = self.heatmap is not None
+        print(f"Heatmap: {'ON' if heatmap_on else 'OFF'}")
+        print("Press Q to quit | R to reset heatmap\n")
+
+        prev_time = time.time()
 
         while True:
             ret, frame = cap.read()
             if not ret:
                 break
 
+            # Run YOLO + ByteTrack
             results = self.model.track(
                 frame,
                 conf=self.conf,
@@ -216,7 +220,7 @@ class Detector:
                 verbose=False
             )
 
-            # Heatmap
+            # ── Heatmap (draw FIRST so boxes appear on top) ───────
             if self.heatmap:
                 boxes_list = []
                 if results[0].boxes is not None:
@@ -225,34 +229,13 @@ class Detector:
                 frame = self.heatmap.draw(frame, alpha=0.45)
                 frame = self.heatmap.draw_legend(frame)
 
-            # FPS
+            # ── FPS ───────────────────────────────────────────────
             curr_time = time.time()
             fps       = 1 / max(curr_time - prev_time, 0.001)
             prev_time = curr_time
-            fps_history.append(fps)
             self.speed_estimator.fps = fps
 
-            # ── Log detections to MongoDB ─────────────────────────
-            if self.db and results[0].boxes.id is not None:
-                boxes   = results[0].boxes.xyxy.cpu().numpy()
-                ids     = results[0].boxes.id.cpu().numpy().astype(int)
-                classes = results[0].boxes.cls.cpu().numpy().astype(int)
-                confs   = results[0].boxes.conf.cpu().numpy()
-
-                for box, tid, cid, conf in zip(
-                        boxes, ids, classes, confs):
-                    spd  = self.speed_estimator.get_speed(tid)
-                    name = self.model.names[cid]
-                    self.db.log_detection(
-                        class_name=name,
-                        confidence=conf,
-                        track_id=tid,
-                        bbox=box,
-                        speed=spd,
-                        alert=False
-                    )
-
-            # Draw
+            # ── Draw tracked boxes + HUD ──────────────────────────
             count = len(results[0].boxes) if results[0].boxes else 0
             frame = self._draw_tracked_boxes(frame, results, counter)
             frame = self._draw_fps(frame, fps)
@@ -267,19 +250,52 @@ class Detector:
             if writer:
                 writer.write(frame)
 
+            # Key controls
             key = cv2.waitKey(1) & 0xFF
             if key == ord("q"):
+                print("Quitting...")
+                if counter:
+                    print(f"Total crossings: {counter.count}")
                 break
             elif key == ord("r") and self.heatmap:
                 self.heatmap.reset()
-
-        # ── End session ───────────────────────────────────────────
-        avg_fps = sum(fps_history) / max(len(fps_history), 1)
-        if self.db:
-            self.db.end_session(avg_fps=avg_fps)
-            self.db.close()
+                print("Heatmap reset!")
 
         cap.release()
         if writer:
             writer.release()
+        cv2.destroyAllWindows()
+
+    # ── static image detection ────────────────────────────────────
+    def detect_image(self, image_path, save=True):
+        import os
+        frame = cv2.imread(image_path)
+        if frame is None:
+            print(f"Could not load image: {image_path}")
+            return
+
+        results = self.model(
+            frame,
+            conf=self.conf,
+            iou=self.iou,
+            classes=self.classes,
+            verbose=False
+        )
+        count     = len(results[0].boxes)
+        annotated = results[0].plot()
+
+        if self.classes:
+            names = [self.model.names[c] for c in self.classes]
+            print(f"Detected {count} objects | Filter: {', '.join(names)}")
+        else:
+            print(f"Detected {count} objects")
+
+        if save:
+            base = os.path.basename(image_path)
+            out  = f"output/detected_{base}"
+            cv2.imwrite(out, annotated)
+            print(f"Saved to {out}")
+
+        cv2.imshow("Detection Result", annotated)
+        cv2.waitKey(0)
         cv2.destroyAllWindows()

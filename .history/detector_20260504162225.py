@@ -5,7 +5,6 @@ from ultralytics import YOLO
 from tracker import LineCounter
 from speed_estimator import SpeedEstimator
 from heatmap import Heatmap
-from database import DetectionDB  
 
 class Detector:
     def __init__(
